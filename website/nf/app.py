@@ -165,15 +165,36 @@ def result():
     	best_price = np.where(prices == prices.min())
     	aurora_value = np.float(request.form['aurora_value'])
     	price_value = np.float(request.form['price_value']   )
+    	
+    	
+    	
     	#figure_of_merit =   (aurora_p / aurora_p.max()) * aurora_value  + (prices.min()/prices) * price_value
     	#best_total = np.where(figure_of_merit == figure_of_merit.max())
     	print(best_aurora)
-    	#best_aurora_text = final_airport_codes[best_aurora[1]][4:]+' in '+str(dates[best_aurora[0]])+';  price = '+str(prices[best_aurora])+' p='+str(aurora_p[best_aurora])
+    	#print(prices)
+    	#print(dts[best_aurora[0]][0])
+    	#print(dates_dt)
+    	#print(prices[:,best_aurora[1]])
+    	prices_temp = prices[:,best_aurora[1]]
+    	#print('djjks')
+    	#print(b)
+    	#print(b.shape)
+    	prices_reshape = np.hstack([prices_temp[i,0] for i in range(prices_temp.shape[0])])
+    	#print(a)
+    	best_aurora_price = np.interp(dts[best_aurora[0]][0], dates_dt, prices_reshape)
+    	print(best_aurora_price)
+    	#print(final_airport_codes)
+    	#print(best_aurora[1])
+    	#print(final_airport_codes[best_aurora[1][0]])
+    	#print(final_airport_codes[best_aurora[1][0]][4:])
+    	#print(str(dts[best_aurora[0]][0]))
+    	#print(str(aurora_p[best_aurora]))
+    	best_aurora_text = final_airport_codes[best_aurora[1][0]][4:]+' in '+str(dts[best_aurora[0]][0])+';  price = '+str(best_aurora_price)+' p='+str(aurora_p[best_aurora][0])
+    	print(best_aurora_text)
 
 
 
-
-    return render_template('result.html',dest_codes=final_airport_codes,plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path)#,best_aurora_text=best_aurora_text)
+    return render_template('result.html',dest_codes=final_airport_codes,plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path,best_aurora_text=best_aurora_text)
 
 
     
