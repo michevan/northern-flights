@@ -328,23 +328,21 @@ def get_mag_lat_maxes(routes,N_routes):
     return maxes
     
 
-
-def get_one_day_aurora_prob(lat,lon,mag_lat,mag_lon,dt,mag_lats,kpX_aurora_prob,dl):
+def get_one_day_aurora_prob(lat,lon,mag_lat,mag_lon,dt,mag_lats,aurora_frac_over_route,dl):
     ### for a given flight route (lat,lon,mag_lat,mag_lon) output the probability of seeing 
     ### the aurora. 
     ### mag_lats and kpX_aurora_prob are matching arrays giving the model
     ### probability of seeing the aurora over a 4-hour period at a given mag latitude 
     ### (see get_aurora_prob_over_time for details)
     ### dt = number of days from today
-    v_airplane = 600.0  #km/hr
+    v_airplane = 800.0  #km/hr
     N_pts = len(lat)
-    probs = np.zeros(N_pts)
+    day_fracs = np.zeros(N_pts)
     for i in range(N_pts):
         if np.isnan(lat[i]):
             continue
-        day_frac = get_length_of_daytime(str(lat[i]),str(lon[i]),dt)
-        aur_frac = np.interp(mag_lat[i],mag_lats,kpX_aurora_prob)
-        probs[i] = (1.0-day_frac) * aur_frac * (dl / v_airplane / 4.0)
+        day_fracs[i] = get_length_of_daytime(str(lat[i]),str(lon[i]),dt)
+    probs = (1.0-day_fracs) * aurora_frac_over_route * (dl / v_airplane / 4.0)   #4 hour windw
     return 1.0 - np.prod(1.0 - probs)
     
 
@@ -395,6 +393,23 @@ def get_aurora_data():
     return kp,ap
 
 
+
+
+def get_aurora_prob_over_route(lat,lon,mag_lat,mag_lon,mag_lats,kpX_aurora_prob,dl):
+    ### for a given flight route (lat,lon,mag_lat,mag_lon) output the probability of seeing 
+    ### the aurora. 
+    ### mag_lats and kpX_aurora_prob are matching arrays giving the model
+    ### probability of seeing the aurora over a 4-hour period at a given mag latitude 
+    ### (see get_aurora_prob_over_time for details)
+    N_pts = len(lat)
+    aur_frac = np.zeros(N_pts)
+    for i in range(N_pts):
+        if np.isnan(lat[i]):
+            continue
+        aur_frac[i] = np.interp(mag_lat[i],mag_lats,kpX_aurora_prob)
+    return aur_frac
+	
+
 def get_aurora_prob_over_time(lat,lon,mag_lat,mag_lon,x_model,kp_model,route_dl,N_days=31,day_max=300):
     ### get probability of seeing aurora for a given flight path, over the next day_max days
     ### N_days is the number of days to sample within the day_max-day window
@@ -406,32 +421,35 @@ def get_aurora_prob_over_time(lat,lon,mag_lat,mag_lon,x_model,kp_model,route_dl,
     ### here is where I put my aurora model itself
     mag_lats = np.linspace(50,90,401)
     kp0_aurora_prob = (mag_lats>66.5)*0.4     # over 4 hours
+    kp0_frac_over_route = get_aurora_prob_over_route(lat,lon,mag_lat,mag_lon,mag_lats,kp0_aurora_prob,route_dl)
     kp1_aurora_prob = (mag_lats>64.5)*0.5     # over 4 hours
+    kp1_frac_over_route = get_aurora_prob_over_route(lat,lon,mag_lat,mag_lon,mag_lats,kp1_aurora_prob,route_dl)
     kp2_aurora_prob = (mag_lats>62.4)*0.6     # over 4 hours
+    kp2_frac_over_route = get_aurora_prob_over_route(lat,lon,mag_lat,mag_lon,mag_lats,kp2_aurora_prob,route_dl)
     kp3_aurora_prob = (mag_lats>60.4)*0.7     # over 4 hours
-    kp4_aurora_prob = (mag_lats>58.3)*0.8     # over 4 hours
-    kp5_aurora_prob = (mag_lats>56.3)*0.9     # over 4 hours
+    kp3_frac_over_route = get_aurora_prob_over_route(lat,lon,mag_lat,mag_lon,mag_lats,kp3_aurora_prob,route_dl)
+    #kp4_aurora_prob = (mag_lats>58.3)*0.8     # over 4 hours
+    #kp5_aurora_prob = (mag_lats>56.3)*0.9     # over 4 hours
     ### based on https://www.swpc.noaa.gov/content/tips-viewing-aurora
     ### and fig 12-20b of http://www.cnofs.org/Handbook_of_Geophysics_1985/Chptr12.pdf
     dts = np.linspace(0,day_max,N_days)
     p_aurora = np.zeros(N_days)
     for i in range(N_days):
-        print(i)
-        date_today = date.today() +timedelta(days=dts[i])
-        year_code = date_today.year+date_today.month/12.0 +date_today.day/365.0
-        kp_prediction = np.interp(year_code,x_model,kp_model)
-        if kp_prediction < 0.5:
-            kpX_aurora_prob = kp0_aurora_prob
-        elif kp_prediction < 1.5:
-            kpX_aurora_prob = kp1_aurora_prob
-        elif kp_prediction < 2.5:
-            kpX_aurora_prob = kp2_aurora_prob
-        elif kp_prediction < 3.5:
-            kpX_aurora_prob = kp3_aurora_prob
-        else:
-            kpX_aurora_prob = kp4_aurora_prob
-        p = get_one_day_aurora_prob(lat,lon,mag_lat,mag_lon,dts[i],mag_lats,kpX_aurora_prob,route_dl)
-        p_aurora[i] = p
+    	date_today = date.today() +timedelta(days=dts[i])
+    	year_code = date_today.year+date_today.month/12.0 +date_today.day/365.0
+    	kp_prediction = np.interp(year_code,x_model,kp_model)
+    	if kp_prediction < 0.5:
+    		aurora_frac_over_route = kp0_frac_over_route
+    	elif kp_prediction < 1.5:
+    		aurora_frac_over_route = kp1_frac_over_route
+    	elif kp_prediction < 2.5:
+    		aurora_frac_over_route = kp2_frac_over_route
+    	elif kp_prediction < 3.5:
+    		aurora_frac_over_route = kp3_frac_over_route
+    	else:
+    		print('model kp is too high')
+    		raise
+    	p_aurora[i] = get_one_day_aurora_prob(lat,lon,mag_lat,mag_lon,dts[i],mag_lats,aurora_frac_over_route,route_dl)
     return p_aurora,dts
     
     

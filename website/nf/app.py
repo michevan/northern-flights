@@ -109,7 +109,8 @@ def result():
     		if df is not None:
     			routes = routes.append(df)
     			N_routes += 1
-    			
+
+        """    			
         ### put the aurora data into pandas dataframes
         ### I will actually only use the ap data
         ### and I think there is something wrong with how I am parsing the kp data		
@@ -130,7 +131,11 @@ def result():
     	p = np.poly1d(z)
     	x_model = np.linspace(cycle_begin,cycle_end+0.6,1001)
     	bf_model = p(x_model-2013.)
-    	
+    	"""
+    	### load aurora model fit to NOAA data, defined in make_aurora_model.ipynb
+    	### strictly valid until Jan 4, 2019   (end of current Solar cycle)
+    	### and extrapolated out to Jan 4, 2021 assuming the next Solar cycle begins like the current one
+    	x_model,bf_model = np.loadtxt('aurora_model.dat',skiprows=1,usecols=[0,1],unpack=True)  
     	
     	### aurora prob lookup table (from https://www.ngdc.noaa.gov/stp/geomag/kp_ap.html)
     	### to convert ap values into kp values
