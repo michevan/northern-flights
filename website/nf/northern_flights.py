@@ -348,7 +348,7 @@ def get_one_day_aurora_prob(lat,lon,mag_lat,mag_lon,dt,mag_lats,aurora_frac_over
 
 
 
-
+"""
 ### load up the aurora data which I downloaded from NOAA
 ### FTP link available at https://www.ngdc.noaa.gov/stp/geomag/kp_ap.html
 def get_aurora_data():
@@ -391,6 +391,8 @@ def get_aurora_data():
     kp = pd.Series(kp_list,index=time_list)
     ap = pd.Series(ap_list,index=time_list)
     return kp,ap
+"""
+
 
 
 
@@ -534,6 +536,23 @@ def scrape_skypicker(origin_code,destination_code,delta_t = 7,t_max = 300):
     return best_prices,dates
 
 
+
+def NumtoMonth(num):
+    NumMonth = {
+                    1: 'January',
+                    2: 'February',
+                    3: 'March',
+                    4: 'April',
+                    5: 'Mai',
+                    6: 'Juni',
+                    7: 'Juli',
+                    8: 'Aug.',
+                    9: 'Sep', 
+                    10: 'Oct',
+                    11: 'Nov',
+                    12: 'Dec'
+            }
+    return NumMonth[num]
 
 
 
