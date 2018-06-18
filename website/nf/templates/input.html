@@ -1,10 +1,64 @@
 <html>
+
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.slidecontainer {
+    width: 50%;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 50%;
+    height: 25px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+</style>
+</head>
+
+
    <body>
    
       <form action = "http://localhost:5000/result" method = "POST">
          <p>Airport code <input type = "text" name = "airport" /></p>
-         <p>How important is price? (0-1) <input type = "text" name = "price_value" /></p>
-         <p>How important is seeing the aurora? (0-1) <input type = "text" name = "aurora_value" /></p>
+         
+         
+<div class="slidecontainer">
+  <input type="range" min="-10" max="10" value="0" class="slider" name="value_slider">
+  <p>Value: <span id="demo"></span></p>
+</div>
+
+
+         
+     
+     
+     
          <p><input type = "submit" value = "submit" /></p>
       </form>
       

@@ -40,6 +40,8 @@ def result():
     	arctic_circle_lat = 64.0   #it's actually 66.3 degrees, but give a bit of wiggle room
     	route_dl = 50   #km, the spatial resolution of the great circle geometry
     	airport_code = request.form['airport']   
+    	slider_value = request.form['value_slider']
+    	print(slider_value)
     	current_date = time.strftime('%m/%d/%Y')    #make date format a constant
     	sp_api = nf.SkyPickerApi()
     	sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=7),datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=14))
