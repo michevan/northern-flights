@@ -195,14 +195,12 @@ def result():
     	best_aurora_price = np.interp(dts[best_aurora[0]][0], dates_dt, prices_reshape)
     	best_aurora_month = (datetime.today() + timedelta(days=dts[best_aurora[0]][0])).month
     	best_aurora_year = (datetime.today() + timedelta(days=dts[best_aurora[0]][0])).year
-    	print(best_aurora_month)
-    	print(nf.NumtoMonth(np.int(best_aurora_month)))
-    	#print(best_aurora[1])
-    	#print(best_aurora[1][0])
-    	print(final_airport_codes[best_aurora[1][0]])
-    	print(aurora_p[best_aurora])
-    	print(aurora_p[best_aurora][0])
-    	print(str(aurora_p[best_aurora][0]))
+    	#print(best_aurora_month)
+    	#print(nf.NumtoMonth(np.int(best_aurora_month)))
+    	#print(final_airport_codes[best_aurora[1][0]])
+    	#print(aurora_p[best_aurora])
+    	#print(aurora_p[best_aurora][0])
+    	#print(str(aurora_p[best_aurora][0]))
     	best_aurora_text = final_airport_codes[best_aurora[1][0]]
     	best_aurora_text +=' in '+str(nf.NumtoMonth(np.int(best_aurora_month)))+' '+str(best_aurora_year)
     	best_aurora_text +='. Estimated price ~  $'+str(best_aurora_price)
