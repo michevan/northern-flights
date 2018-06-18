@@ -58,12 +58,13 @@ def result():
     	elapsed_time = time.time() - start_time
     	print('time to search flights from airport: '+str(elapsed_time))
     	start_time = time.time()
+    	lat_dict = nf.load_airport_lat_dictionary()
+    	lon_dict = nf.load_airport_lon_dictionary()
     	for iata_code in unique_dest_iata_codes:
-    		lat,lon = nf.get_airport_coords(sp_api,iata_code)    #use a local file instead
-    		unique_dest_lats.append(lat)
-    		unique_dest_lons.append(lon)
-    		
-    	origin_lat,origin_lon = nf.get_airport_coords(sp_api,airport_code)
+    		unique_dest_lats.append(lat_dict[iata_code])
+    		unique_dest_lons.append(lon_dict[iata_code])
+    	origin_lat = lat_dict[airport_code]
+    	origin_lon = lon_dict[airport_code]	
     	elapsed_time = time.time() - start_time
     	print('time to get airport coordinates: '+str(elapsed_time))
     	start_time = time.time()

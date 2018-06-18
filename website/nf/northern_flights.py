@@ -25,6 +25,7 @@ import base64
 import urllib.parse
 import requests
 import json
+import csv
 
 
 class SkyPickerApi(object):
@@ -182,6 +183,19 @@ def get_airport_coords(sp_api,iata_code):
     
     
     
+   
+def load_airport_lat_dictionary():
+	with open('../../airports.csv', 'r') as infile:
+		reader = csv.DictReader(infile)
+		lat_dict = {rows['iata_code']:np.float(rows['latitude_deg']) for rows in reader}
+	return lat_dict
+	
+def load_airport_lon_dictionary():
+	with open('../../airports.csv', 'r') as infile:
+		reader = csv.DictReader(infile)
+		lon_dict = {rows['iata_code']:np.float(rows['longitude_deg']) for rows in reader}
+	return lon_dict
+	
     
 
 
