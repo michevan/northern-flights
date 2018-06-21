@@ -268,7 +268,7 @@ def get_flight_route(i,does_this_route_pass_through_arctic,airport_code,dest_air
         else:    #anti-meridian crossing, they split the results into two groups so the len will be a lot longer
             for j in range(len(data['features'][0]['geometry']['coordinates'][0][:])):
                 lon,lat = data['features'][0]['geometry']['coordinates'][0][j]
-                mg_lat,mg_lon = aacgmv2.convert(lat, lon, 10, date=datetime.date.today(), 
+                mg_lat,mg_lon = aacgmv2.convert(lat, lon, 10, date=date.today(), 
                                                   a2g=False, trace=False, allowtrace=False,
                                                   badidea=False, geocentric=False)
                 mag_lat.append(mg_lat[0])
@@ -277,7 +277,7 @@ def get_flight_route(i,does_this_route_pass_through_arctic,airport_code,dest_air
                 gc_lon.append(lon)
             for j in range(len(data['features'][0]['geometry']['coordinates'][1][:])):
                 lon,lat = data['features'][0]['geometry']['coordinates'][1][j]
-                mg_lat,mg_lon = aacgmv2.convert(lat, lon, 10, date=datetime.date.today(), 
+                mg_lat,mg_lon = aacgmv2.convert(lat, lon, 10, date=date.today(), 
                                                   a2g=False, trace=False, allowtrace=False,
                                                   badidea=False, geocentric=False)
                 mag_lat.append(mg_lat[0])
@@ -303,8 +303,13 @@ def get_length_of_daytime(lat,lon,dt):
     obs.lon = lon
     obs.elevation = 10000
     d = date.today()
+    #print(lat)
+    #print(lon)
     h = np.int(np.floor(12.0 + np.float(lon)/15.0))
     m = np.int(np.floor(np.mod(np.float(lon)/15.0,60)))
+    if h == 24:
+    	h = 23
+    	m = 59
     t = time(hour=h, minute=m)
     obs.date = datetime.combine(d+timedelta(days=dt), t)
     try:
@@ -492,7 +497,35 @@ def make_aurora_plot(N_routes,dts,aurora_p,final_airport_codes):
 	return plot_data
 
 
-def make_prices_plot(N_routes,dts,prices,final_airport_codes):
+
+
+
+
+def match_iata_code(code,reader):
+    for row in reader:
+        if(row['iata_code'] == code):
+            if row['id']!='326459':   #CDG weirdness
+                return row['latitude_deg'],row['longitude_deg'],row['name']
+                
+                
+def get_scraped_data(df,origin,destination):
+    with open('../../airports.csv') as csvfile:
+        reader = csv.DictReader(csvfile)
+        origin_lat,origin_lon,_ = match_iata_code(origin,reader)
+    with open('../../airports.csv') as csvfile:
+        reader = csv.DictReader(csvfile)
+        destination_lat,destination_lon,_ = match_iata_code(destination,reader)
+    matches = df.loc[(df['Origin lon'] == np.float(origin_lon)) *
+                         (df['Destination lat'] == np.float(destination_lat))]
+    date_code_today = date.today().year + date.today().month/12.0 + date.today().day/365.0
+    date_from_now = matches['date'] - date_code_today
+    return date_from_now*365.0,matches['airfare']
+
+	
+
+
+
+def make_prices_plot(N_routes,dts,prices,final_airport_codes,df):
 	fig=Figure()
 	ax=fig.add_subplot(111)
 	
@@ -501,10 +534,13 @@ def make_prices_plot(N_routes,dts,prices,final_airport_codes):
 	color_list = plt.cm.Set1(np.linspace(0, 1, N_routes))
 	for i in range(N_routes):
 		plt.plot(dts,prices[:,i],'-',color=color_list[i],label=final_airport_codes[i][4:])
+		dts_data,price_data = get_scraped_data(df,final_airport_codes[i][:3],final_airport_codes[i][4:])
+		plt.plot(dts_data,price_data,'o',color=color_list[i],label='_nolegend_')
 	plt.xlabel('days from now')
 	plt.ylabel('one-way price (USD)')
 	plt.legend(loc='best')
 	plt.xlim([0,dts.max()])
+	plt.ylim([0,prices.max()*1.2])
 	#plt.ylim(0,1)	
 	#ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
 	#fig.autofmt_xdate()
