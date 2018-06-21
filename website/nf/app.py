@@ -212,7 +212,8 @@ def result():
     	aurora_weight = expit(-1.0*np.float(slider_value))
     	price_weight = expit(np.float(slider_value))
     	
-    	figure_of_merit =   (aurora_p * aurora_weight) +    ((prices.max() - prices)/(prices.max()-prices.min()))*price_weight
+    	figure_of_merit =   (aurora_p * aurora_weight) +    (prices.min() / prices)*price_weight * aurora_p.max()
+    	#figure_of_merit =   (aurora_p * aurora_weight) +    ((prices.max() - prices)/(prices.max()-prices.min()))*price_weight
     	best_overall = np.where(figure_of_merit == figure_of_merit.max())
     	best_aurora_overall = aurora_p[best_overall][0]
     	best_price_overall = prices[best_overall][0]
