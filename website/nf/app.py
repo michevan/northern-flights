@@ -151,10 +151,10 @@ def result():
     	print('time to load precomputed aurora data '+str(elapsed_time))
     	start_time = time.time()
 
-    	N_days = 31
+    	N_days = 26
     	aurora_p = np.zeros([N_days,N_routes])
     	for i in range(N_routes):
-    		p,dts = nf.get_aurora_prob_over_time(routes.iloc[4*i][1:].values,routes.iloc[4*i+1][1:].values,routes.iloc[4*i+2][1:].values,routes.iloc[4*i+3][1:].values,x_model,kp_model,route_dl,N_days=N_days)
+    		p,dts = nf.get_aurora_prob_over_time(routes.iloc[4*i][1:].values,routes.iloc[4*i+1][1:].values,routes.iloc[4*i+2][1:].values,routes.iloc[4*i+3][1:].values,x_model,kp_model,route_dl,N_days=N_days,day_max=500)
     		aurora_p[:,i] = p
     	elapsed_time = time.time() - start_time
     	print('time to estimate aurora probabilities: '+str(elapsed_time))
@@ -166,18 +166,18 @@ def result():
     	print('time to make aurora plot: '+str(elapsed_time))
     	start_time = time.time()
     	
-    	nn_model,encoder,scaler,kmeans = nn.load_neural_network_data('k_min')
+    	nn_model,encoder,scaler,kmeans,nn_df = nn.load_neural_network_data('k_interp')
     	prices = np.zeros([N_days,N_routes])
     	for i in range(N_routes):
-    		pr,dts = nn.predict_airfares_kmeans(origin_lat,origin_lon,final_airport_lats[i],final_airport_lons[i],encoder,scaler,nn_model,kmeans,N_days=N_days,day_max=450)
+    		pr,dts = nn.predict_airfares_kmeans(origin_lat,origin_lon,final_airport_lats[i],final_airport_lons[i],encoder,scaler,nn_model,kmeans,N_days=N_days,day_max=500)
     		prices[:,i] = pr
-    	print(prices)	
+    	#print(prices)	
     	
     	elapsed_time = time.time() - start_time
     	print('time to predict flight prices with neural network: '+str(elapsed_time))
     	start_time = time.time()
-	
-    	price_plot_path = nf.make_prices_plot(N_routes,dts,prices,final_airport_codes)	
+		
+    	price_plot_path = nf.make_prices_plot(N_routes,dts,prices,final_airport_codes,nn_df)	
 
     	elapsed_time = time.time() - start_time
     	print('time to make flight prices plot: '+str(elapsed_time))
@@ -192,7 +192,7 @@ def result():
     	best_aurora_year = (datetime.today() + timedelta(days=dts[best_aurora[0]][0])).year
     	best_aurora_text = final_airport_codes[best_aurora[1][0]]
     	best_aurora_text +=' in '+str(nf.NumtoMonth(np.int(best_aurora_month)))+' '+str(best_aurora_year)
-    	best_aurora_text +='. Estimated price ~  $'+str(best_aurora_price)
+    	best_aurora_text +='. Estimated price ~  $%.f' % (best_aurora_price)
     	best_aurora_text +=', and estimated aurora probability = %0.2f'  % (aurora_p[best_aurora][0])
     	
     	best_price = np.where(prices == prices.min())
@@ -205,14 +205,23 @@ def result():
     	best_price_year = (datetime.today() + timedelta(days=dts[best_price[0]][0])).year
     	best_price_text = final_airport_codes[best_price[1][0]]
     	best_price_text +=' in '+str(nf.NumtoMonth(np.int(best_price_month)))+' '+str(best_price_year)
-    	best_price_text +='. Estimated price ~  $'+str(prices[best_price][0])
+    	best_price_text +='. Estimated price ~  $%.f' % (prices[best_price][0])
     	best_price_text +=', and estimated aurora probability = %0.2f'  % (best_price_aurora)
     	
     	### use sigmoid function to translate slider value to weights
     	aurora_weight = expit(-1.0*np.float(slider_value))
     	price_weight = expit(np.float(slider_value))
     	
-    	figure_of_merit =   (aurora_p * aurora_weight) + ((prices - prices[best_price][0])/(prices+prices[best_price][0]))*price_weight
+    	figure_of_merit =   (aurora_p * aurora_weight) +    ((prices.max() - prices)/(prices.max()-prices.min()))*price_weight
+    	best_overall = np.where(figure_of_merit == figure_of_merit.max())
+    	best_aurora_overall = aurora_p[best_overall][0]
+    	best_price_overall = prices[best_overall][0]
+    	best_overall_month = (datetime.today() + timedelta(days=dts[best_overall[0]][0])).month
+    	best_overall_year = (datetime.today() + timedelta(days=dts[best_overall[0]][0])).year
+    	best_overall_text = final_airport_codes[best_overall[1][0]]
+    	best_overall_text +=' in '+str(nf.NumtoMonth(np.int(best_overall_month)))+' '+str(best_overall_year)
+    	best_overall_text +='. Estimated price ~  $%.f' % (best_price_overall)
+    	best_overall_text +=', and estimated aurora probability = %0.2f'  % (best_aurora_overall)
     	
     	#best_total = np.where(figure_of_merit == figure_of_merit.max())
 
@@ -223,11 +232,12 @@ def result():
     	start_time = time.time()
 
     	print('time to finish code: '+str(elapsed_time))
-    	print(best_aurora_text)
-    	print(best_price_text)
-    	print(figure_of_merit.max())
+    	#print(best_aurora_text)
+    	#print(best_price_text)
+    	#print(best_overall_text)
+    	#print(figure_of_merit.max())
 
-    return render_template('result.html',dest_codes=final_airport_codes,plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path,best_aurora_text=best_aurora_text)
+    return render_template('result.html',plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path,best_aurora_text=best_aurora_text,best_price_text=best_price_text,best_overall_text=best_overall_text)
 
 
     
