@@ -14,7 +14,8 @@ matplotlib.use('Agg')
 
 import northern_flights as nf
 import great_circle_routines as gc
-    
+import neural_net as nn
+from scipy.special import expit    
 
 
 
@@ -112,9 +113,13 @@ def result():
     	#plot_html = make_plot2(arctic_circle_lat,origin_lon,origin_lat,does_this_route_pass_through_arctic,dest_airports,airport_code)
 
     	final_airport_codes = []
+    	final_airport_lats = []
+    	final_airport_lons = []
     	for i in range(len(does_this_route_pass_through_arctic)):
     		if does_this_route_pass_through_arctic[i]:
     			final_airport_codes.append(airport_code+'-'+dest_airports.loc[i].code)
+    			final_airport_lats.append(dest_airports.loc[i].lat)
+    			final_airport_lons.append(dest_airports.loc[i].lon)
     			
     	### make a giant dataframe that contains all the routes which pass through the arctic
 		### and it also contains the flight path, sampled every 10 km
@@ -149,7 +154,7 @@ def result():
     	N_days = 31
     	aurora_p = np.zeros([N_days,N_routes])
     	for i in range(N_routes):
-    		p,dts = nf.get_aurora_prob_over_time(routes.iloc[4*i][1:].values,routes.iloc[4*i+1][1:].values,routes.iloc[4*i+2][1:].values,routes.iloc[4*i+3][1:].values,x_model,kp_model,route_dl)
+    		p,dts = nf.get_aurora_prob_over_time(routes.iloc[4*i][1:].values,routes.iloc[4*i+1][1:].values,routes.iloc[4*i+2][1:].values,routes.iloc[4*i+3][1:].values,x_model,kp_model,route_dl,N_days=N_days)
     		aurora_p[:,i] = p
     	elapsed_time = time.time() - start_time
     	print('time to estimate aurora probabilities: '+str(elapsed_time))
@@ -160,32 +165,29 @@ def result():
     	elapsed_time = time.time() - start_time
     	print('time to make aurora plot: '+str(elapsed_time))
     	start_time = time.time()
-
-    	t_max = 75
-    	dates = pd.date_range(pd.datetime.today(), periods=t_max)
-    	dates_dt = np.linspace(0,t_max-1,t_max)
-    	prices = np.zeros([t_max,N_routes])
+    	
+    	nn_model,encoder,scaler,kmeans = nn.load_neural_network_data('k_min')
+    	prices = np.zeros([N_days,N_routes])
     	for i in range(N_routes):
-    		#print(airport_code)
-    		print(final_airport_codes[i][4:])
-    		best_prices_skypicker,dates_skypicker = nf.scrape_skypicker(airport_code,final_airport_codes[i][4:],delta_t = 7,t_max = t_max)
-    		prices[:,i] = best_prices_skypicker
+    		pr,dts = nn.predict_airfares_kmeans(origin_lat,origin_lon,final_airport_lats[i],final_airport_lons[i],encoder,scaler,nn_model,kmeans,N_days=N_days,day_max=450)
+    		prices[:,i] = pr
+    	print(prices)	
+    	
     	elapsed_time = time.time() - start_time
-    	print('time to search flight prices on skypicker API: '+str(elapsed_time))
+    	print('time to predict flight prices with neural network: '+str(elapsed_time))
     	start_time = time.time()
 	
-    	price_plot_path = nf.make_prices_plot(N_routes,dates_dt,prices,final_airport_codes,dts)	
+    	price_plot_path = nf.make_prices_plot(N_routes,dts,prices,final_airport_codes)	
 
     	elapsed_time = time.time() - start_time
     	print('time to make flight prices plot: '+str(elapsed_time))
     	start_time = time.time()
     	
-    	#figure_of_merit =   (aurora_p / aurora_p.max()) * aurora_value  + (prices.min()/prices) * price_value
-    	#best_total = np.where(figure_of_merit == figure_of_merit.max())
     	best_aurora = np.where(aurora_p == aurora_p.max())
-    	prices_temp = prices[:,best_aurora[1]]
-    	prices_reshape = np.hstack([prices_temp[i,0] for i in range(prices_temp.shape[0])])
-    	best_aurora_price = np.interp(dts[best_aurora[0]][0], dates_dt, prices_reshape)
+    	#prices_temp = prices[:,best_aurora[1]]
+    	#prices_reshape = np.hstack([prices_temp[i,0] for i in range(prices_temp.shape[0])])
+    	#best_aurora_price = np.interp(dts[best_aurora[0]][0], dates_dt, prices_reshape)
+    	best_aurora_price = prices[best_aurora][0]
     	best_aurora_month = (datetime.today() + timedelta(days=dts[best_aurora[0]][0])).month
     	best_aurora_year = (datetime.today() + timedelta(days=dts[best_aurora[0]][0])).year
     	best_aurora_text = final_airport_codes[best_aurora[1][0]]
@@ -194,16 +196,26 @@ def result():
     	best_aurora_text +=', and estimated aurora probability = %0.2f'  % (aurora_p[best_aurora][0])
     	
     	best_price = np.where(prices == prices.min())
-    	auroras_temp = aurora_p[:,best_price[1]]
-    	auroras_reshape =  np.hstack([auroras_temp[i,0] for i in range(auroras_temp.shape[0])])
+    	#auroras_temp = aurora_p[:,best_price[1]]
+    	#auroras_reshape =  np.hstack([auroras_temp[i,0] for i in range(auroras_temp.shape[0])])
 		
-    	best_price_aurora = np.interp(dates_dt[best_price[0]][0], dts , auroras_reshape)
-    	best_price_month = (datetime.today() + timedelta(days=dates_dt[best_price[0]][0])).month
-    	best_price_year = (datetime.today() + timedelta(days=dates_dt[best_price[0]][0])).year
+    	#best_price_aurora = np.interp(dates_dt[best_price[0]][0], dts , auroras_reshape)
+    	best_price_aurora = aurora_p[best_price][0]
+    	best_price_month = (datetime.today() + timedelta(days=dts[best_price[0]][0])).month
+    	best_price_year = (datetime.today() + timedelta(days=dts[best_price[0]][0])).year
     	best_price_text = final_airport_codes[best_price[1][0]]
     	best_price_text +=' in '+str(nf.NumtoMonth(np.int(best_price_month)))+' '+str(best_price_year)
     	best_price_text +='. Estimated price ~  $'+str(prices[best_price][0])
     	best_price_text +=', and estimated aurora probability = %0.2f'  % (best_price_aurora)
+    	
+    	### use sigmoid function to translate slider value to weights
+    	aurora_weight = expit(-1.0*np.float(slider_value))
+    	price_weight = expit(np.float(slider_value))
+    	
+    	figure_of_merit =   (aurora_p * aurora_weight) + ((prices - prices[best_price][0])/(prices+prices[best_price][0]))*price_weight
+    	
+    	#best_total = np.where(figure_of_merit == figure_of_merit.max())
+
     	
     	elapsed_time = time.time() - start_time
  
@@ -213,7 +225,7 @@ def result():
     	print('time to finish code: '+str(elapsed_time))
     	print(best_aurora_text)
     	print(best_price_text)
-
+    	print(figure_of_merit.max())
 
     return render_template('result.html',dest_codes=final_airport_codes,plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path,best_aurora_text=best_aurora_text)
 

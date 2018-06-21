@@ -426,7 +426,7 @@ def get_aurora_prob_over_route(lat,lon,mag_lat,mag_lon,mag_lats,kpX_aurora_prob,
     return aur_frac
 	
 
-def get_aurora_prob_over_time(lat,lon,mag_lat,mag_lon,x_model,kp_model,route_dl,N_days=31,day_max=300):
+def get_aurora_prob_over_time(lat,lon,mag_lat,mag_lon,x_model,kp_model,route_dl,N_days=30,day_max=450):
     ### get probability of seeing aurora for a given flight path, over the next day_max days
     ### N_days is the number of days to sample within the day_max-day window
     ### lat,lon,mag_lat,mag_lon are the flight path info
@@ -492,7 +492,7 @@ def make_aurora_plot(N_routes,dts,aurora_p,final_airport_codes):
 	return plot_data
 
 
-def make_prices_plot(N_routes,dates,prices,final_airport_codes,dts):
+def make_prices_plot(N_routes,dts,prices,final_airport_codes):
 	fig=Figure()
 	ax=fig.add_subplot(111)
 	
@@ -500,7 +500,7 @@ def make_prices_plot(N_routes,dates,prices,final_airport_codes,dts):
 	plt.clf()
 	color_list = plt.cm.Set1(np.linspace(0, 1, N_routes))
 	for i in range(N_routes):
-		plt.plot(dates,prices[:,i],'-',color=color_list[i],label=final_airport_codes[i][4:])
+		plt.plot(dts,prices[:,i],'-',color=color_list[i],label=final_airport_codes[i][4:])
 	plt.xlabel('days from now')
 	plt.ylabel('one-way price (USD)')
 	plt.legend(loc='best')
