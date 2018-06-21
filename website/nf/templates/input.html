@@ -2,8 +2,12 @@
 
 
 <head>
+        <title>Northern Flights </title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <style>
 .slidecontainer {
     width: 50%;
@@ -44,23 +48,67 @@
 
 
    <body>
+   <div class="container-fluid">
    
-      <form action = "http://localhost:5000/result" method = "POST">
-         <p>Airport code <input type = "text" name = "airport" /></p>
+      <form class="form-horizontal" action = "http://localhost:5000/result" method = "POST">
+
+
+          <div class="row">
+        <div class="col-sm-2"></div>
+  <div class="col-sm-6 ">
+    <p>   <font size="7">  Northern Flights </font> <p>
+         </div></div>
+    
+<p>
+    <br />    
          
+         <div class="form-group"> 
+           <label class="control-label col-sm-2" for="airport">Airport code:</label>
+    <div class="col-sm-4">
+      <input type="text" class="form-control" name="airport" placeholder="Enter 3-letter airport code">
+    </div>
+  </div>
+  <p>
+  <br />
+  <br />
+
+  <br />
+
+  <p>
+      <div class="row">
+        <div class="col-sm-1"></div>
+  <div class="col-sm-6 ">
+    <p>     Please drag the slider to prioritize seeing the aurora or finding cheaper flights. <p>
+         </div></div>
          
-<div class="slidecontainer">
+                 <div class="row">
+  <div class="col-sm-1"><p align="right">Aurora</p></div>
+  <div class="col-sm-4 slidecontainer">
   <input type="range" min="-10" max="10" value="0" class="slider" name="value_slider">
-  <p>Value: <span id="demo"></span></p>
 </div>
-
-
+  <div class="col-sm-1"><p align="left">Price</p></div>
+</div>
          
+
+<br />
+<br />
+  <br />
+
+
+                <div class="row">
+  <div class="col-sm-3"></div>
+  <div class="col-sm-3 ">
+
+ <button type="submit" class="btn btn-default" value = "submit">Submit</button>
+</div>
+  
+     <p>
      
-     
-     
-         <p><input type = "submit" value = "submit" /></p>
+          
+
       </form>
-      
+      </div>
+
+
    </body>
 </html>

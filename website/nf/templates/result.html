@@ -1,27 +1,53 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
     <head>
-        <title>Northern Flights</title>
+        <title>Northern Flights Results</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+  div.a {
+    text-align: center;
+}
+</style>
     </head>
     <body>
     
+   <div class="container-fluid">
 
 
-     Northern Flights best route for seeing the aurora:  {{best_aurora_text}}
-     <p>
-     Northern Flights cheapest route:  {{best_price_text}}
-     <p>
-     Northern Flights recommended route:  {{best_overall_text}}
+<div class="a">
+
+    <p>   <font size="5">  Your Results </font> <p>
+
+
+<big>     Northern Flights recommended route:  {{best_overall_text}} </big>
 	<p>
+
+ <big>    Best route for seeing the aurora:  {{best_aurora_text}} </big>
+     <p>
+ <big>    Cheapest route:  {{best_price_text}} </big>
+     <p>
 
 <img src="data:image/png;base64,{{ plot_code }}" width="100%">
 
 
+
+<div class="container">
+  <p>Click on the button to see more detailed information about each route.</p>
+  <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo">More Information</button>
+  <div id="demo" class="collapse">
 <img src="data:image/png;base64,{{ aurora_plot_code }}" width="100%">
 
 
 <img src="data:image/png;base64,{{ price_plot_code }}" width="100%">
+  </div>
+</div>
 
+
+ </div>
+</div>
  
     </body>
 </html>
