@@ -18,7 +18,7 @@ import neural_net as nn
 from scipy.special import expit    
 
 
-
+from flask import abort
 
 
 
@@ -101,6 +101,11 @@ def result():
     			if np.max(gc_lat) > arctic_circle_lat:
     				does_this_route_pass_through_arctic[i] = 1
     	elapsed_time = time.time() - start_time
+    	
+    	if does_this_route_pass_through_arctic.sum() == 0:
+    		abort(400, 'No direct flights found from this airport. Please try another airport.')
+
+    		
     	print('time to get flight routes: '+str(elapsed_time))
     	start_time = time.time()
 		
@@ -120,6 +125,7 @@ def result():
     			final_airport_codes.append(airport_code+'-'+dest_airports.loc[i].code)
     			final_airport_lats.append(dest_airports.loc[i].lat)
     			final_airport_lons.append(dest_airports.loc[i].lon)
+    	
     			
     	### make a giant dataframe that contains all the routes which pass through the arctic
 		### and it also contains the flight path, sampled every 10 km
