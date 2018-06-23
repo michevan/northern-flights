@@ -19,18 +19,52 @@
 
 <div class="a">
 
-    <p>   <font size="5">  Your Results </font> <p>
+    <p>   <font size="6">  Your Results </font> <p>
 
 
-<big>     Northern Flights recommended route:  {{best_overall_text}} </big>
+</div>
+
+<div class="row">
+  <div class="col-sm-10">    <big>   <span style="font-weight:bold">  Northern Flights recommended route:</span> <br> {{best_overall_text}} </big>
+<br>
+
+<a href={{kiwi_url|safe}} target="_blank"> Click here to search for recommended flights (opens a new window)</a>
+   </div>
+<br>  
+  
+ <!--
+  <meta name="originLocation" content={{origin_code}} />
+<meta name="destinationLocation" content={{dest_code}} />
+
+<div data-skyscanner-widget="SearchWidget" 
+data-origin-name="document.querySelector('meta[name=originLocation]').content"
+data-destination-name="document.querySelector('meta[name=destinationLocation]').content"
+data-currency="USD" data-button-label="Book your Northern Flights flight now!" ></div>
+<script src="https://widgets.skyscanner.net/widget-server/js/loader.js" async></script>
+-->
+     </div>
+     
+
+<br>
+
 	<p>
 
- <big>    Best route for seeing the aurora:  {{best_aurora_text}} </big>
+ <big>   <span style="font-weight:bold"> Best route for seeing the aurora:</span>   {{best_aurora_text}} </big>
      <p>
- <big>    Cheapest route:  {{best_price_text}} </big>
+ <big>    <span style="font-weight:bold"> Cheapest route:</span>  {{best_price_text}} </big>
      <p>
 
+
+
+<div class="a">
+
 <img src="data:image/png;base64,{{ plot_code }}" width="100%">
+
+
+
+
+
+
 
 
 

@@ -45,7 +45,15 @@ def result():
     	print(slider_value)
     	current_date = time.strftime('%m/%d/%Y')    #make date format a constant
     	sp_api = nf.SkyPickerApi()
-    	sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=7),datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=14))
+    	#sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=7),datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=14))
+    	#dec1 = time.mktime([2017,12,1,-1,-1,-1,-1,-1])
+    	#dec31 = time.mktime([2017,12,31,-1,-1,-1,-1,-1])
+    	today_date = datetime.today()
+    	dec1 = today_date.replace(year=2018,month=12,day=1).strftime('%m/%d/%Y')
+    	dec31 = today_date.replace(year=2018,month=12,day=31).strftime('%m/%d/%Y')
+    	print(dec1)
+    	print(dec31)
+    	sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(dec1, '%m/%d/%Y'),datetime.strptime(dec31, '%m/%d/%Y'))
     	dest_iata_codes = []
     	for i in range(len(sp_results)):
     		dest_iata_code = sp_results[i]['legs'][0]['to'][-4:-1]
@@ -61,11 +69,16 @@ def result():
     	start_time = time.time()
     	lat_dict = nf.load_airport_lat_dictionary()
     	lon_dict = nf.load_airport_lon_dictionary()
+    	#name_dict = nf.load_airport_name_dictionary()
     	for iata_code in unique_dest_iata_codes:
     		unique_dest_lats.append(lat_dict[iata_code])
     		unique_dest_lons.append(lon_dict[iata_code])
-    	origin_lat = lat_dict[airport_code]
-    	origin_lon = lon_dict[airport_code]	
+    	try:
+    		origin_lat = lat_dict[airport_code]
+    		origin_lon = lon_dict[airport_code]	
+    		#origin_airport_name = name_dict[airport_code]
+    	except:
+    		abort(400,'Unknown airport code. Please enter a valid three-letter IATA airport code.')
     	elapsed_time = time.time() - start_time
     	print('time to get airport coordinates: '+str(elapsed_time))
     	start_time = time.time()
@@ -237,14 +250,14 @@ def result():
  
     	print('time to compute best values: '+str(elapsed_time))
     	start_time = time.time()
+    	kiwi_url = nf.make_kiwi_url(airport_code, final_airport_codes[best_overall[1][0]][4:7], best_overall_month, best_overall_year)
+    	print(kiwi_url)
+
 
     	print('time to finish code: '+str(elapsed_time))
-    	#print(best_aurora_text)
-    	#print(best_price_text)
-    	#print(best_overall_text)
-    	#print(figure_of_merit.max())
 
-    return render_template('result.html',plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path,best_aurora_text=best_aurora_text,best_price_text=best_price_text,best_overall_text=best_overall_text)
+    return render_template('result.html',plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path,best_aurora_text=best_aurora_text,
+    best_price_text=best_price_text,best_overall_text=best_overall_text,kiwi_url=kiwi_url)
 
 
     

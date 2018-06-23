@@ -196,7 +196,14 @@ def load_airport_lon_dictionary():
 		lon_dict = {rows['iata_code']:np.float(rows['longitude_deg']) for rows in reader}
 	return lon_dict
 	
-    
+def load_airport_name_dictionary():
+	with open('../../airports.csv', 'r') as infile:
+		reader = csv.DictReader(infile)
+		name_dict = {rows['iata_code']:rows['name'] for rows in reader}
+	return name_dict
+	
+        
+
 
 
 def make_plot(arctic_circle_lat,origin_lon,origin_lat,does_this_route_pass_through_arctic,dest_airports,airport_code):
@@ -485,10 +492,24 @@ def make_aurora_plot(N_routes,dts,aurora_p,final_airport_codes):
 	plt.clf()
 	color_list = plt.cm.Set1(np.linspace(0, 1, N_routes))
 	for i in range(N_routes):
-		plt.plot(dts,aurora_p[:,i],'-', label=final_airport_codes[i][4:],color=color_list[i])
-	plt.xlabel('days from now')
-	plt.ylabel('aurora prob')
-	plt.ylim(0,1)
+		plt.plot(dts,100.0*aurora_p[:,i],'-', label=final_airport_codes[i][4:],color=color_list[i])
+	#plt.xlabel('days from now')
+	plt.title('Probability of Seeing the Aurora on Different Routes')
+	plt.ylabel('Probability')
+	plt.ylim(0,100)
+	dts_new = np.linspace(0,dts.max(),dts.max()+1)
+	dts_to_dates = np.array([date.today() + timedelta(days=dts_new[i]) for i in range(len(dts_new))])
+	month_starts = np.array([dts_to_dates[i].day == 1 for i in range(len(dts_new))])
+	x_tick_locs = dts_new[np.where(month_starts)]
+	month_nums = dts_to_dates[np.where(month_starts)]
+	x_tick_names = np.array([NumtoMonth2(month_nums[i].month)+'\n '+str(month_nums[i].year) for i in range(len(month_nums))],dtype='str')
+	#print(x_tick_locs)
+	#print(x_tick_names)
+	plt.xticks(x_tick_locs,x_tick_names)
+	plt.yticks([0,20,40,60,80,100],['0%','20%','40%','60%','80%','100%'])
+	#plt.xticks(rotation=90)
+	plt.xticks(fontsize=7)#, rotation=90)
+	plt.xlim([0,dts.max()])
 	plt.legend(loc='best')
 	img = io.BytesIO()  # create the buffer
 	plt.savefig(img, format='png')  # save figure to the buffer
@@ -536,11 +557,27 @@ def make_prices_plot(N_routes,dts,prices,final_airport_codes,df):
 		plt.plot(dts,prices[:,i],'-',color=color_list[i],label=final_airport_codes[i][4:])
 		dts_data,price_data = get_scraped_data(df,final_airport_codes[i][:3],final_airport_codes[i][4:])
 		plt.plot(dts_data,price_data,'o',color=color_list[i],label='_nolegend_')
-	plt.xlabel('days from now')
-	plt.ylabel('one-way price (USD)')
+	#plt.xlabel('days from now')
+	#plt.ylabel('one-way price (USD)')
 	plt.legend(loc='best')
+	
+	
+	plt.title('Approximate Expected Airfare on Different Routes')
+	plt.ylabel('One-Way Price (USD)')
+	dts_new = np.linspace(0,dts.max(),dts.max()+1)
+	dts_to_dates = np.array([date.today() + timedelta(days=dts_new[i]) for i in range(len(dts_new))])
+	month_starts = np.array([dts_to_dates[i].day == 1 for i in range(len(dts_new))])
+	x_tick_locs = dts_new[np.where(month_starts)]
+	month_nums = dts_to_dates[np.where(month_starts)]
+	x_tick_names = np.array([NumtoMonth2(month_nums[i].month)+'\n '+str(month_nums[i].year) for i in range(len(month_nums))],dtype='str')
+	#print(x_tick_locs)
+	#print(x_tick_names)
+	plt.xticks(x_tick_locs,x_tick_names)
+	#plt.xticks(rotation=90)
+	plt.xticks(fontsize=7)#, rotation=90)
 	plt.xlim([0,dts.max()])
 	plt.ylim([0,prices.max()*1.2])
+
 	#plt.ylim(0,1)	
 	#ax.fmt_xdata = mdates.DateFormatter('%Y-%m-%d')
 	#fig.autofmt_xdate()
@@ -605,5 +642,47 @@ def NumtoMonth(num):
     return NumMonth[num]
 
 
+
+def NumtoMonth2(num):
+    NumMonth = {
+                    1: 'Jan',
+                    2: 'Feb',
+                    3: 'Mar',
+                    4: 'Apr',
+                    5: 'May',
+                    6: 'Jun',
+                    7: 'Jul',
+                    8: 'Aug',
+                    9: 'Sep', 
+                    10: 'Oct',
+                    11: 'Nov',
+                    12: 'Dec'
+            }
+    return NumMonth[num]
+
+
+
+def make_kiwi_url(origin, destination, month, year):
+        """ Create URL to search kiwi.com for direct flights over a one-month period
+        origin  and destination are IATA codes
+        month and year are integers
+        """
+        today_date = datetime.today()
+        date1 = today_date.replace(year=year,month=month,day=1)
+        if month in [1,3,5,7,8,10,12]:
+            date2 = today_date.replace(year=year,month=month,day=31)
+        elif (month == 2) and (year == 2020):  #leap year
+            date2 = today_date.replace(year=year,month=month,day=29)
+        elif (month == 2):
+            date2 = today_date.replace(year=year,month=month,day=28)
+        else:
+            date2 = today_date.replace(year=year,month=month,day=30)
+        
+        base_url = 'https://www.kiwi.com/us/search/'
+        loc_url = origin+'/'+destination+'/'
+        date_url = date1.strftime('%Y-%m-%d')+'_'+date2.strftime('%Y-%m-%d')+'/'
+        final_url = 'no-return?stopNumber=0'
+        url_final = base_url + loc_url + date_url + final_url
+        return url_final
 
 
