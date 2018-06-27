@@ -185,19 +185,19 @@ def get_airport_coords(sp_api,iata_code):
     
    
 def load_airport_lat_dictionary():
-	with open('../airports.csv', 'r', encoding="utf-8") as infile:
+	with open('./airports.csv', 'r', encoding="utf-8") as infile:
 		reader = csv.DictReader(infile)
 		lat_dict = {rows['iata_code']:np.float(rows['latitude_deg']) for rows in reader}
 	return lat_dict
 	
 def load_airport_lon_dictionary():
-	with open('../airports.csv', 'r', encoding="utf-8") as infile:
+	with open('./airports.csv', 'r', encoding="utf-8") as infile:
 		reader = csv.DictReader(infile)
 		lon_dict = {rows['iata_code']:np.float(rows['longitude_deg']) for rows in reader}
 	return lon_dict
 	
 def load_airport_name_dictionary():
-	with open('../airports.csv', 'r', encoding="utf-8") as infile:
+	with open('./airports.csv', 'r', encoding="utf-8") as infile:
 		reader = csv.DictReader(infile)
 		name_dict = {rows['iata_code']:rows['name'] for rows in reader}
 	return name_dict
@@ -483,10 +483,10 @@ def match_iata_code(code,reader):
                 
                 
 def get_scraped_data(df,origin,destination):
-	with open('../airports.csv', 'r', encoding="utf-8") as csvfile:
+	with open('./airports.csv', 'r', encoding="utf-8") as csvfile:
 		reader = csv.DictReader(csvfile)
 		origin_lat,origin_lon,_ = match_iata_code(origin,reader)
-	with open('../airports.csv', 'r', encoding="utf-8") as csvfile:
+	with open('./airports.csv', 'r', encoding="utf-8") as csvfile:
 		reader = csv.DictReader(csvfile)
 		destination_lat,destination_lon,_ = match_iata_code(destination,reader)
 	matches = df.loc[(df['Origin lon'] == np.float(origin_lon)) * (df['Destination lat'] == np.float(destination_lat))]

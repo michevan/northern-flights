@@ -19,11 +19,11 @@ import pickle
 
 
 def load_neural_network_data(prefix):
-	model = pickle.load(open('../'+prefix+'_network.sav', 'rb'))
-	encoder = pickle.load(open('../'+prefix+'_encoder.sav', 'rb'))
-	scaler = pickle.load(open('../'+prefix+'_scaler.sav', 'rb'))
-	kmeans = pickle.load(open('../'+prefix+'_kmeans.sav', 'rb'))
-	df = pickle.load(open('../'+prefix+'_df.sav', 'rb'))
+	model = pickle.load(open('./'+prefix+'_network.sav', 'rb'))
+	encoder = pickle.load(open('./'+prefix+'_encoder.sav', 'rb'))
+	scaler = pickle.load(open('./'+prefix+'_scaler.sav', 'rb'))
+	kmeans = pickle.load(open('./'+prefix+'_kmeans.sav', 'rb'))
+	df = pickle.load(open('./'+prefix+'_df.sav', 'rb'))
 	return model,encoder,scaler,kmeans,df
 	
 
@@ -52,12 +52,16 @@ def predict_airfares_kmeans(origin_lat,origin_lon,destination_lat,destination_lo
     month_num = np.zeros(N_days)
     year = np.zeros(N_days)
     date_code = np.zeros(N_days)
+    within_100_days = np.zeros(N_days)
     from datetime import datetime, timedelta, date, time
     for i in range(N_days):
     	date_today = date.today() +timedelta(days=dts[i])
     	month_num[i] = date_today.month
     	year[i] = date_today.year
     	date_code[i] = date_today.year+date_today.month/12.0 +date_today.day/365.0
+    	within_100_days[i] = (date_code[i] > 2018.5).astype(float)*(2018.8-date_code[i].astype(float))*(date_code[i] < 2018.8).astype(float)
+
+
     X_extrapolate = pd.DataFrame({'Origin lat' : [np.float(origin_lat) for i in range(N_days)],        #0
                        'Origin lon' : [np.float(origin_lon) for i in range(N_days)],
                        'Destination lat' : [np.float(destination_lat) for i in range(N_days)],
@@ -65,7 +69,8 @@ def predict_airfares_kmeans(origin_lat,origin_lon,destination_lat,destination_lo
                        'distance' : [gcd for i in range(N_days)],
                        'year' : [year[i] for i in range(N_days)],
                        'month' : [month_num[i] for i in range(N_days)],
-                        'date' : [date_code[i] for i in range(N_days)]})
+                        'date' : [date_code[i] for i in range(N_days)],
+                        'within 100 days' : [within_100_days[i] for i in range(N_days)]})
     X_extrapolate['Origin lon'] = X_extrapolate['Origin lon']+180.0
     X_extrapolate['Destination lon'] = X_extrapolate['Destination lon']+180.0
     X_extrapolate['Origin lat'] = X_extrapolate['Origin lat']+90.0
@@ -80,7 +85,7 @@ def predict_airfares_kmeans(origin_lat,origin_lon,destination_lat,destination_lo
     X_onehot = encoder.transform(dt)
     X_onehot_pd = pd.DataFrame(X_onehot.todense())
 
-    nothot_X = pd.concat([X_extrapolate['month'],X_extrapolate['distance'],X_extrapolate['year'],X_extrapolate['date']],axis=1)
+    nothot_X = pd.concat([X_extrapolate['month'],X_extrapolate['distance'],X_extrapolate['year'],X_extrapolate['date'],X_extrapolate['within 100 days']],axis=1)
     X_nothot = scaler.transform(nothot_X)
     X_nothot_pd = pd.DataFrame(X_nothot)
 
