@@ -45,14 +45,9 @@ def result():
     	#	route_dl = 200
     	current_date = time.strftime('%m/%d/%Y')    #make date format a constant
     	sp_api = nf.SkyPickerApi()
-    	#sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=7),datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=14))
-    	#dec1 = time.mktime([2017,12,1,-1,-1,-1,-1,-1])
-    	#dec31 = time.mktime([2017,12,31,-1,-1,-1,-1,-1])
     	today_date = datetime.today()
     	dec1 = today_date.replace(year=2018,month=12,day=1).strftime('%m/%d/%Y')
     	dec31 = today_date.replace(year=2018,month=12,day=31).strftime('%m/%d/%Y')
-    	#print(dec1)
-    	#print(dec31)
     	sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(dec1, '%m/%d/%Y'),datetime.strptime(dec31, '%m/%d/%Y'))
     	dest_iata_codes = []
     	for i in range(len(sp_results)):
@@ -69,14 +64,12 @@ def result():
     	start_time = time.time()
     	lat_dict = nf.load_airport_lat_dictionary()
     	lon_dict = nf.load_airport_lon_dictionary()
-    	#name_dict = nf.load_airport_name_dictionary()
     	for iata_code in unique_dest_iata_codes:
     		unique_dest_lats.append(lat_dict[iata_code])
     		unique_dest_lons.append(lon_dict[iata_code])
     	try:
     		origin_lat = lat_dict[airport_code]
     		origin_lon = lon_dict[airport_code]	
-    		#origin_airport_name = name_dict[airport_code]
     	except:
     		abort(400,'Unknown airport code. Please enter a valid three-letter IATA airport code.')
     	if origin_lat < 10:
@@ -118,7 +111,7 @@ def result():
     	elapsed_time = time.time() - start_time
     	
     	if does_this_route_pass_through_arctic.sum() == 0:
-    		abort(400, 'No direct flights found from this airport. Please try another airport.')
+    		abort(400, 'No direct flights that have a chance to see the Northern Lights are found from this airport. Please try another airport.')
 
     		
     	print('time to get flight routes: '+str(elapsed_time))
@@ -130,8 +123,6 @@ def result():
     	print('time to make the globe plot: '+str(elapsed_time))
     	start_time = time.time()
 	
-    	#plot_html = make_plot2(arctic_circle_lat,origin_lon,origin_lat,does_this_route_pass_through_arctic,dest_airports,airport_code)
-
     	final_airport_codes = []
     	final_airport_lats = []
     	final_airport_lons = []
@@ -205,9 +196,6 @@ def result():
     	start_time = time.time()
     	
     	best_aurora = np.where(aurora_p == aurora_p.max())
-    	#prices_temp = prices[:,best_aurora[1]]
-    	#prices_reshape = np.hstack([prices_temp[i,0] for i in range(prices_temp.shape[0])])
-    	#best_aurora_price = np.interp(dts[best_aurora[0]][0], dates_dt, prices_reshape)
     	best_aurora_price = prices[best_aurora][0]
     	best_aurora_month = (datetime.today() + timedelta(days=dts[best_aurora[0]][0])).month
     	best_aurora_year = (datetime.today() + timedelta(days=dts[best_aurora[0]][0])).year
@@ -217,10 +205,6 @@ def result():
     	best_aurora_text +=', and estimated aurora probability = %0.2f'  % (aurora_p[best_aurora][0])
     	
     	best_price = np.where(prices == prices.min())
-    	#auroras_temp = aurora_p[:,best_price[1]]
-    	#auroras_reshape =  np.hstack([auroras_temp[i,0] for i in range(auroras_temp.shape[0])])
-		
-    	#best_price_aurora = np.interp(dates_dt[best_price[0]][0], dts , auroras_reshape)
     	best_price_aurora = aurora_p[best_price][0]
     	best_price_month = (datetime.today() + timedelta(days=dts[best_price[0]][0])).month
     	best_price_year = (datetime.today() + timedelta(days=dts[best_price[0]][0])).year
@@ -234,7 +218,7 @@ def result():
     	price_weight = expit(np.float(slider_value))
     	
     	figure_of_merit =   (aurora_p * aurora_weight) +    (prices.min() / prices)*price_weight * aurora_p.max()
-    	#figure_of_merit =   (aurora_p * aurora_weight) +    ((prices.max() - prices)/(prices.max()-prices.min()))*price_weight
+
     	best_overall = np.where(figure_of_merit == figure_of_merit.max())
     	best_aurora_overall = aurora_p[best_overall][0]
     	best_price_overall = prices[best_overall][0]
@@ -244,10 +228,7 @@ def result():
     	best_overall_text +=' in '+str(nf.NumtoMonth(np.int(best_overall_month)))+' '+str(best_overall_year)
     	best_overall_text +='. Estimated price ~  $%.f' % (best_price_overall)
     	best_overall_text +=', and estimated aurora probability = %0.2f'  % (best_aurora_overall)
-    	
-    	#best_total = np.where(figure_of_merit == figure_of_merit.max())
-
-    	
+    	    	
     	elapsed_time = time.time() - start_time
  
     	print('time to compute best values: '+str(elapsed_time))
