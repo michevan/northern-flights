@@ -14,7 +14,8 @@ matplotlib.use('Agg')
 
 import northern_flights as nf
 import great_circle_routines as gc
-import neural_net as nn
+#import neural_net as nn
+import random_forest as rf
 from scipy.special import expit    
 
 
@@ -36,10 +37,12 @@ def result():
     if request.method == 'POST' :
     	start_time = time.time()
     	arctic_circle_lat = 64.0   #it's actually 66.3 degrees, but give a bit of wiggle room
-    	route_dl = 50   #km, the spatial resolution of the great circle geometry
+    	route_dl = 100   #km, the spatial resolution of the great circle geometry
     	airport_code = request.form['airport']   
     	slider_value = request.form['value_slider']
     	print(slider_value)
+    	#if airport_code in ['LAX', 'ORD', 'JFK']:   #speed up code for busy airports
+    	#	route_dl = 200
     	current_date = time.strftime('%m/%d/%Y')    #make date format a constant
     	sp_api = nf.SkyPickerApi()
     	#sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=7),datetime.strptime(current_date, '%m/%d/%Y')+timedelta(days=14))
@@ -48,8 +51,8 @@ def result():
     	today_date = datetime.today()
     	dec1 = today_date.replace(year=2018,month=12,day=1).strftime('%m/%d/%Y')
     	dec31 = today_date.replace(year=2018,month=12,day=31).strftime('%m/%d/%Y')
-    	print(dec1)
-    	print(dec31)
+    	#print(dec1)
+    	#print(dec31)
     	sp_results = sp_api.search_flights_from_airport(airport_code, datetime.strptime(dec1, '%m/%d/%Y'),datetime.strptime(dec31, '%m/%d/%Y'))
     	dest_iata_codes = []
     	for i in range(len(sp_results)):
@@ -76,6 +79,8 @@ def result():
     		#origin_airport_name = name_dict[airport_code]
     	except:
     		abort(400,'Unknown airport code. Please enter a valid three-letter IATA airport code.')
+    	if origin_lat < 10:
+    		abort(400,'This airport is too far South. Please choose an airport at higher latitude.')
     	elapsed_time = time.time() - start_time
     	print('time to get airport coordinates: '+str(elapsed_time))
     	start_time = time.time()
@@ -182,10 +187,10 @@ def result():
     	print('time to make aurora plot: '+str(elapsed_time))
     	start_time = time.time()
     	
-    	nn_model,encoder,scaler,kmeans,nn_df = nn.load_neural_network_data('k_interp_direct')
+    	rf_model,rf_df = rf.load_random_forest_data('k_interp_direct_rf')
     	prices = np.zeros([N_days,N_routes])
     	for i in range(N_routes):
-    		pr,dts = nn.predict_airfares_kmeans(origin_lat,origin_lon,final_airport_lats[i],final_airport_lons[i],encoder,scaler,nn_model,kmeans,N_days=N_days,day_max=500)
+    		pr,dts = rf.predict_airfares(origin_lat,origin_lon,final_airport_lats[i],final_airport_lons[i],rf_model,N_days=N_days,day_max=500)
     		prices[:,i] = pr
     	#print(prices)	
     	
@@ -193,7 +198,7 @@ def result():
     	print('time to predict flight prices with neural network: '+str(elapsed_time))
     	start_time = time.time()
 		
-    	price_plot_path = nf.make_prices_plot(N_routes,dts,prices,final_airport_codes,nn_df)	
+    	price_plot_path = nf.make_prices_plot(N_routes,dts,prices,final_airport_codes,rf_df)	
 
     	elapsed_time = time.time() - start_time
     	print('time to make flight prices plot: '+str(elapsed_time))
