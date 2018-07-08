@@ -40,7 +40,7 @@ def result():
     	start_time = time.time()
     	arctic_circle_lat = 64.0   #it's actually 66.3 degrees, but give a bit of wiggle room
     	route_dl = 100   #km, the spatial resolution of the great circle geometry
-    	airport_code = request.form['airport']   
+    	airport_code = request.form['airport'].upper()   
     	slider_value = request.form['value_slider']
     	print(slider_value)
     	#if airport_code in ['LAX', 'ORD', 'JFK']:   #speed up code for busy airports
@@ -239,13 +239,13 @@ def result():
     	print(kiwi_url)
     	
     	### housecleaning - clear out temp json files in gis_temp
-    	for filename in os.listdir(folderpath):
-    		if filename.endswith('.geojson'):
-    			try:
-    				os.unlink(folderpath+filename)
-    				#print(folderpath+filename)
-    			except:
-    				pass
+    	#for filename in os.listdir(folderpath):
+    	#	if filename.endswith('.geojson'):
+    	#		try:
+    	#			os.unlink(folderpath+filename)
+    	#			#print(folderpath+filename)
+    	#		except:
+    	#			pass
     	print('time to finish code: '+str(elapsed_time))
 
     return render_template('result.html',plot_code=figdata_path,aurora_plot_code=aurora_plot_path,price_plot_code=price_plot_path,best_aurora_text=best_aurora_text,
