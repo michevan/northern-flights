@@ -113,7 +113,7 @@ def result():
     	elapsed_time = time.time() - start_time
     	
     	if does_this_route_pass_through_arctic.sum() == 0:
-    		abort(400, 'No direct flights that have a chance to see the Northern Lights are found from this airport. Please try another airport.')
+    		abort(400, 'No direct flights that have a chance to see the Northern Lights are found from this airport. Please try another airport. \n If this airport should have direct flights over the Arctic, please check https://status.kiwi.com to verify the status of the API, as an API outage can also cause this error. ')
 
     		
     	print('time to get flight routes: '+str(elapsed_time))
